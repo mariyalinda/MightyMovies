@@ -1,0 +1,119 @@
+{% extends "ads/base_menu.html" %}
+{% load humanize %} <!-- https://docs.djangoproject.com/en/3.0/ref/contrib/humanize -->
+{% block head %}
+<style>
+.overlay{
+  position: fixed;
+  margin-top:5%;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+  display: none;
+  background-color: rgba(0,0,0,0.5); /*dim the background*/
+}
+
+body{
+    background-image:url("https://conversationsabouther.net/wp-content/uploads/2015/07/empty-cinema.jpg");
+    background-position: center top;
+    background-repeat: no-repeat;
+    background-size: cover;
+    position: relative;
+}
+div.transbox {
+  margin: 30px;
+  background-color: #ffffff;
+  border: 1px solid black;
+  opacity: 0.6;
+}
+
+div.content{
+  margin: 5%;
+
+  color: #000000;
+
+  padding: 20px;
+  /*text-align:center;*/
+}
+h1{
+    text-align:center;
+    margin-bottom:3%;
+}
+
+</style>
+{% endblock %}
+{% block content %}
+
+
+{% if ad.content_type %}
+<div id="overlay" class="overlay" style="text-align: center;"
+  onclick="document.getElementById('overlay').style.display = 'none';" >
+<img style="width:90%; border:3px solid black;" src="{% url 'ads:ad_picture' ad.id %}">
+</div>
+{% endif %}
+
+<span style="float: right; color:white">
+({{ ad.updated_at|naturaltime }})
+{% if ad.owner == user %}
+<a href="{% url 'ads:ad_update' ad.id %}"><i class="fa fa-pencil"></i></a>
+<a href="{% url 'ads:ad_delete' ad.id %}"><i class="fa fa-trash"></i></a>
+{% endif %}
+</span>
+
+
+
+{% if ad.content_type %}
+<img style="display:block; margin-left:25%; margin-top:5%; margin-right:25%; height:400px; width:600px;" src="{% url 'ad:ad_picture' ad.id %}"
+    onclick="document.getElementById('overlay').style.display = 'block';">
+{% endif %}
+
+<div class="transbox">
+    <div class="content">
+        <h1>{{ ad.title }}</h1>
+<p class="lead">
+{{ ad.description }}
+</p>
+<p class="lead">
+    Cast:
+{{ad.cast}}
+</p>
+
+<p class="lead">
+({{ ad.updated_at|naturaltime }})
+</p>
+{% if user.is_authenticated %}
+<br clear="all"/>
+<br>
+<button type="button" class="btn btn-danger">Buy</button>
+<br>
+<p class="lead">
+{% load crispy_forms_tags %}
+<form method="post" action="{% url 'ads:ad_comment_create' ad.id %}">
+    {% csrf_token %}
+    {{ comment_form|crispy }}
+
+<button type="submit" value="Submit" class="btn btn-danger">Submit</button>
+<!--<input type="submit" value="Submit">-->
+<button type="submit" value="All Ads" class="btn btn-danger" onclick="window.location.href='{% url 'ads:all' %}';return false;">All movies</button>
+<!--<input type="submit" value="All Ads" onclick="window.location.href='{% url 'ads:all' %}';return false;">-->
+</form>
+</p>
+
+{% endif %}
+{% for comment in comments %}
+<p class="lead"> {{ comment.text }}
+({{ comment.updated_at|naturaltime }})
+{% if user == comment.owner %}
+<a href="{% url 'ads:ad_comment_delete' comment.id %}"><i class="fa fa-trash"></i></a>
+{% endif %}
+</p>
+{% endfor %}
+</div>
+</div>
+{% endblock %}
+
+
+
+
+

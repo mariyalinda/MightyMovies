@@ -1,0 +1,134 @@
+{% extends 'ads/base_menu.html' %}
+{% block title %}{{ settings.APP_NAME }}{% endblock %}
+{% block content %}
+<h1>MightyMovies</h1>
+
+<div style="float:right">
+<!-- https://www.w3schools.com/howto/howto_css_search_button.asp -->
+<form>
+  <input type="text" placeholder="Search.." name="search"
+  {% if search %} value="{{ search }}" {% endif %}
+  >
+  <button type="submit"><i class="fa fa-search"></i></button>
+<a href="{% url 'ads:all' %}"><i class="fa fa-undo"></i></a>
+</form>
+</div>
+<style type="text/css">
+body{
+    background-image:url("https://miro.medium.com/max/12640/0*P_6oCqTUt7yeJ-YX");
+    /*height: 500px;*/
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    position: relative;
+}
+div.transbox {
+  margin: 10px;
+  background-color: #ffffff;
+  border: 1px solid black;
+  opacity: 0.6;
+}
+
+div.transbox p {
+  margin: 5%;
+
+  color: #000000;
+
+  padding: 5px;
+  text-align:center;
+}
+h1{
+    font-family: Impact, Charcoal, sans-serif; font-size: 45px; line-height: 48px;
+    text-align:center;
+    color:white;
+}
+
+
+</style>
+<br>
+<div class="transbox">
+<p class="lead">
+    Why stand in line for hours to book your tickets when you have MightyMovies at your fingertips? Sign in to search movies currently running in theatres,
+read reviews, book tickets at your favorite prices and much more!
+<br>
+
+{% if ad_list %}
+<ul class="list-group">
+  {% for ad in ad_list %}
+    <li class="list-group-item">
+        <a href="{% url 'ads:ad_detail'  ad.id %}" class="list-group-item list-group-item-action">{{ ad.title }}</a>
+        {% if ad.owner == user %}
+        (<a href="{% url 'ads:ad_update' ad.id %}">Edit</a> |
+        <a href="{% url 'ads:ad_delete' ad.id %}">Delete</a>)
+        {% endif %}
+
+        {% if user.is_authenticated %}
+        <!-- Two hrefs with two stacked icons each - one showing and one hidden -->
+        <a href="#" onclick=
+            "favPost('{% url 'ads:ad_unfavorite' ad.id %}', {{ ad.id }} );return false;"
+            {% if ad.id not in favorites %} style="display: none;" {% endif %}
+            id="favorite_star_{{ad.id}}">
+        <span class="fa-stack" style="vertical-align: middle;">
+        <i class="fa fa-star fa-stack-1x" style="color: orange;"></i>
+        <i class="fa fa-star-o fa-stack-1x"></i>
+        </span>
+        </a>
+        <!-- the second href -->
+        <a href="#" onclick=
+             "favPost('{% url 'ads:ad_favorite' ad.id %}', {{ ad.id }} );return false;"
+            {% if ad.id in favorites %} style="display: none;" {% endif %}
+            id="unfavorite_star_{{ad.id}}">
+        <span class="fa-stack" style="vertical-align: middle;">
+        <i class="fa fa-star fa-stack-1x" style="display: none; color: orange;"></i>
+        <i class="fa fa-star-o fa-stack-1x"></i>
+        </span>
+        </a>
+
+        <div style="left:10px">
+            {% if ad.description|length < 100 %}
+                {{ ad.description }}
+            {% else %}
+                {{ ad.description|slice:"0:99" }}
+                <a href="{% url 'ads:ad_detail'  ad.id %}">...</a>
+            {% endif %}
+        </div>
+        <small>
+        {% if ad.owner.username %}
+            posted by {{ ad.owner.username }}
+        {% endif %}
+        {{ ad.natural_updated }}
+        </small>
+
+
+        {% endif %}
+    </li>
+  {% endfor %}
+</ul>
+{% else %}
+  <p>There are no movies in the database.</p>
+{% endif %}
+</p>
+</div>
+<p>
+<a href="{% url 'ads:ad_create' %}" class="btn btn-primary stretched-link">Add a movie</a>
+{% if user.is_authenticated %}
+<a href="{% url 'logout' %}?next={% url 'ads:all' %}" class="btn btn-primary stretched-link">Logout</a>
+{% else %}
+<a href="{% url 'login' %}?next={% url 'ads:all' %}" class="btn btn-primary stretched-link">Login</a>
+{% endif %}
+</p>
+
+
+<script>
+function favPost(url, ad_id) {
+    console.log('Requesting JSON');
+    $.post(url, {},  function(rowz){
+        console.log(url, 'finished');
+        $("#unfavorite_star_"+ad_id).toggle();
+        $("#favorite_star_"+ad_id).toggle();
+    }).fail(function(xhr) {
+        alert('Url failed with '+xhr.status+' '+url);
+    });
+}
+</script>
+{% endblock %}
